@@ -1,0 +1,37 @@
+arriendo_canchas/
+├── assets
+│   └── client_logos
+├── main.py
+├── models
+│   ├── cancha_model.py
+│   ├── complejo_model.py
+│   ├── reserva_model.py
+│   └── usuario_model.py
+├── requirements.txt
+├── services
+│   ├── auth_service.py
+│   └── database_service.py
+├── viewmodels
+│   ├── login_viewmodel.py
+│   ├── main_viewmodel.py
+│   ├── register_viewmodel.py
+│   └── user_viewmodel.py
+└── views
+    ├── authenticated
+    │   ├── admin_view.py
+    │   ├── base_user_view.py
+    │   ├── cliente_arrendador_view.py
+    │   ├── coordinador_personal_view.py
+    │   ├── empleado_atencion_view.py
+    │   ├── master_admin_view.py
+    │   └── usuario_view.py
+    ├── contact_us_view.py
+    ├── home_view.py
+    ├── login_view.py
+    ├── our_clients_view.py
+    ├── services_view.py
+    ├── who_we_are_view.py
+    └── widgets
+        ├── navbar.py
+        ├── navbar_pages.py
+        └── sidebar.py
