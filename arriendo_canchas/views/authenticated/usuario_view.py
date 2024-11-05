@@ -1,8 +1,13 @@
 # views/authenticated/usuario_view.py
 
-from views.authenticated.base_user_view import BaseUserView
+from flet import Column, Text
 
-def UsuarioView(user_vm):
-    base_view = BaseUserView(user_vm)
-    # Aquí puedes añadir contenido específico para Usuario
-    return base_view
+def UsuarioView(page, user_vm):
+    user = user_vm.get_user()
+    return Column(
+        [
+            Text(f"Bienvenido, {user['nombre']}", size=24, weight="bold"),
+            Text("Esta es la vista para el Usuario", size=18),
+            # Contenido específico para Usuario
+        ]
+    )

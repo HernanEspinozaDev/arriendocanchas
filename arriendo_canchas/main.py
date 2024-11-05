@@ -8,12 +8,21 @@ from views.widgets.navbar import Navbar as LandingNavbar
 from views.widgets.navbar_pages import Navbar as AuthenticatedNavbar
 from views.widgets.sidebar import Sidebar
 from viewmodels.user_viewmodel import UserViewModel
+
+# Importar todas las vistas CRUD
 from views.authenticated.admin_view import AdminView
 from views.authenticated.cliente_arrendador_view import ClienteArrendadorView
 from views.authenticated.usuario_view import UsuarioView
 from views.authenticated.coordinador_personal_view import CoordinadorPersonalView
 from views.authenticated.empleado_atencion_view import EmpleadoAtencionView
 from views.authenticated.master_admin_view import MasterAdminView
+from views.authenticated.administradores_view import AdministradoresView
+from views.authenticated.arrendadores_view import ArrendadoresView
+from views.authenticated.coordinadores_view import CoordinadoresView
+from views.authenticated.atencion_view import AtencionView
+from views.authenticated.usuarios_view import UsuariosView
+from views.authenticated.complejos_view import ComplejosView
+from views.authenticated.canchas_view import CanchasView
 
 def main(page: Page):
     page.title = "ArriendoCancha.cl"
@@ -22,14 +31,13 @@ def main(page: Page):
 
     user_vm = UserViewModel()
 
-    # Inicializar page.section_ids con la sección de login incluida
     page.section_ids = {
         "home": "home_section",
         "about": "about_section",
         "services": "services_section",
         "clients": "clients_section",
         "contact": "contact_section",
-        "login": "login_section"  # Agregar login aquí
+        "login": "login_section"
     }
 
     # Estado para controlar la visibilidad del sidebar
@@ -48,48 +56,63 @@ def main(page: Page):
             # Usuario autenticado
             user_type = user_vm.get_user()['tipo_cuenta']
             page.appbar = AuthenticatedNavbar(page, user_vm, toggle_sidebar)
+
             if page.route == "/dashboard" or page.route == "/":
-                # Seleccionar la vista según el tipo de usuario
+                # Vista principal
                 if user_type == "Administrador":
-                    content = AdminView(user_vm)
+                    content = AdminView(page, user_vm)
                 elif user_type == "ClienteArrendador":
-                    content = ClienteArrendadorView(user_vm)
+                    content = ClienteArrendadorView(page, user_vm)
                 elif user_type == "Usuario":
-                    content = UsuarioView(user_vm)
+                    content = UsuarioView(page, user_vm)
                 elif user_type == "CoordinadorPersonal":
-                    content = CoordinadorPersonalView(user_vm)
+                    content = CoordinadorPersonalView(page, user_vm)
                 elif user_type == "EmpleadoAtencion":
-                    content = EmpleadoAtencionView(user_vm)
+                    content = EmpleadoAtencionView(page, user_vm)
                 elif user_type == "MasterAdmin":
-                    content = MasterAdminView(user_vm)
+                    content = MasterAdminView(page, user_vm)
                 else:
                     content = Text("Tipo de usuario desconocido")
-
-                # Crear layout con sidebar y contenido
-                page.add(
-                    Row(
-                        controls=[
-                            # Sidebar
-                            Container(
-                                width=200 if sidebar_visible else 0,
-                                content=Sidebar(page) if sidebar_visible else None,
-                            ),
-                            # Contenido principal
-                            Container(
-                                expand=True,
-                                content=content
-                            ),
-                        ],
-                        expand=True,
-                    )
-                )
             else:
-                page.add(Text("Página no encontrada"))
+                # Manejar otras rutas
+                if page.route == "/administradores":
+                    content = AdministradoresView(page, user_vm)
+                elif page.route == "/arrendadores":
+                    content = ArrendadoresView(page, user_vm)
+                elif page.route == "/coordinadores":
+                    content = CoordinadoresView(page, user_vm)
+                elif page.route == "/atencion":
+                    content = AtencionView(page, user_vm)
+                elif page.route == "/usuarios":
+                    content = UsuariosView(page, user_vm)
+                elif page.route == "/mis_complejos":
+                    content = ComplejosView(page, user_vm)
+                elif page.route == "/mis_canchas":
+                    content = CanchasView(page, user_vm)
+                else:
+                    content = Text("Página no encontrada")
+
+            # Crear layout con sidebar y contenido
+            page.add(
+                Row(
+                    controls=[
+                        # Sidebar
+                        Container(
+                            width=200 if sidebar_visible else 0,
+                            content=Sidebar(page, user_vm) if sidebar_visible else None,
+                        ),
+                        # Contenido principal
+                        Container(
+                            expand=True,
+                            content=content
+                        ),
+                    ],
+                    expand=True,
+                )
+            )
         else:
             # Usuario no autenticado
-
-            # Página principal con scrolling y anclajes
-            content = HomeView(page, user_vm)  # Pasar user_vm a HomeView
+            content = HomeView(page, user_vm)
             page.appbar = LandingNavbar(page)
             page.add(content)
 

@@ -7,13 +7,12 @@ class DatabaseService:
         # Conexión a la base de datos PostgreSQL en Amazon RDS
         self.connection = psycopg2.connect(
             host='arriendocanchasdb.cvqy64y6ixpr.us-east-1.rds.amazonaws.com',
-            database='postgres',  # Asegúrate de que este es el nombre correcto de la base de datos
+            database='postgres',
             user='postgres',
             password='aRRCANCHAS24',
-            port='5432'  # Asegúrate de incluir el puerto si es necesario
+            port='5432'
         )
         self.cursor = self.connection.cursor()
-        
         # Establecer el search_path al esquema correcto
         try:
             self.cursor.execute("SET search_path TO arrcanchasdb")

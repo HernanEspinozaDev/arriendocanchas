@@ -1,8 +1,13 @@
 # views/authenticated/coordinador_personal_view.py
 
-from views.authenticated.base_user_view import BaseUserView
+from flet import Column, Text
 
-def CoordinadorPersonalView(user_vm):
-    base_view = BaseUserView(user_vm)
-    # Aquí puedes añadir contenido específico para Coordinador Personal
-    return base_view
+def CoordinadorPersonalView(page, user_vm):
+    user = user_vm.get_user()
+    return Column(
+        [
+            Text(f"Bienvenido, {user['nombre']}", size=24, weight="bold"),
+            Text("Esta es la vista para el Coordinador de Personal", size=18),
+            # Contenido específico para Coordinador de Personal
+        ]
+    )
