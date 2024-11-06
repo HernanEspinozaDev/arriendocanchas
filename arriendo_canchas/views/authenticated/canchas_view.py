@@ -1,14 +1,14 @@
-# arriendo_canchas/views/authenticated/canchas_view.py
-
 from flet import (
     Column, Row, Text, ElevatedButton, TextField, DataTable, DataColumn,
     DataRow, DataCell, IconButton, icons, AlertDialog, TextButton, Dropdown, dropdown
 )
 from services.database_service import DatabaseService
+from models.cancha_model import CanchaModel
 
 def CanchasView(page, user_vm):
     db_service = DatabaseService()
     cursor = db_service.cursor
+    cancha_model = CanchaModel()
 
     # Obtener el id del usuario actual
     user = user_vm.get_user()
@@ -49,13 +49,27 @@ def CanchasView(page, user_vm):
                 DataCell(
                     Row(
                         [
-                            IconButton(icon=icons.EDIT, tooltip="Editar", on_click=lambda e, cancha=cancha: open_edit_dialog(cancha)),
-                            IconButton(icon=icons.DELETE, tooltip="Eliminar", on_click=lambda e, cancha=cancha: open_delete_dialog(cancha)),
+                            IconButton(
+                                icon=icons.ACCESS_TIME, 
+                                tooltip="Gestionar Disponibilidad", 
+                                on_click=lambda e, cancha=cancha: open_disponibilidad_dialog(cancha)
+                            ),
+                            IconButton(
+                                icon=icons.EDIT, 
+                                tooltip="Editar", 
+                                on_click=lambda e, cancha=cancha: open_edit_dialog(cancha)
+                            ),
+                            IconButton(
+                                icon=icons.DELETE, 
+                                tooltip="Eliminar", 
+                                on_click=lambda e, cancha=cancha: open_delete_dialog(cancha)
+                            ),
                         ]
                     )
                 )
             ]
         )
+    
 
     def refresh_data():
         cancha_list = fetch_canchas()
@@ -77,7 +91,7 @@ def CanchasView(page, user_vm):
 
     complejos_list = fetch_complejos()
 
-    # Funciones para agregar, editar y eliminar
+    # Funciones para agregar, editar y eliminar canchas
 
     def open_add_dialog(e):
         nombre_field = TextField(label="Nombre Cancha")
@@ -188,6 +202,165 @@ def CanchasView(page, user_vm):
                 TextButton("Eliminar", on_click=confirm_delete),
             ],
             actions_alignment="end",
+        )
+        page.dialog.open = True
+        page.update()
+
+    # Funciones para gestionar disponibilidad
+
+    def open_disponibilidad_dialog(cancha):
+        disponibilidad_list = cancha_model.fetch_disponibilidad(cancha['id_cancha'])
+        
+        disponibilidad_table = DataTable(
+            columns=[
+                DataColumn(Text("Fecha")),
+                DataColumn(Text("Hora Inicio")),
+                DataColumn(Text("Hora Fin")),
+                DataColumn(Text("Acciones")),
+            ],
+            rows=[]
+        )
+        
+        def create_disponibilidad_row(disponibilidad):
+            return DataRow(
+                cells=[
+                    DataCell(Text(str(disponibilidad['fecha']))),
+                    DataCell(Text(str(disponibilidad['hora_inicio']))),
+                    DataCell(Text(str(disponibilidad['hora_fin']))),
+                    DataCell(
+                        Row(
+                            [
+                                IconButton(
+                                    icon=icons.EDIT, 
+                                    tooltip="Editar", 
+                                    on_click=lambda e, disponibilidad=disponibilidad: open_edit_disponibilidad_dialog(disponibilidad)
+                                ),
+                                IconButton(
+                                    icon=icons.DELETE, 
+                                    tooltip="Eliminar", 
+                                    on_click=lambda e, disponibilidad=disponibilidad: open_delete_disponibilidad_dialog(disponibilidad)
+                                ),
+                            ]
+                        )
+                    )
+                ]
+            )
+        
+        def refresh_disponibilidad():
+            disponibilidad_list = cancha_model.fetch_disponibilidad(cancha['id_cancha'])
+            disponibilidad_table.rows = [create_disponibilidad_row(d) for d in disponibilidad_list]
+            page.update()
+        
+        disponibilidad_table.rows = [create_disponibilidad_row(d) for d in disponibilidad_list]
+        
+        # Funciones para agregar, editar y eliminar disponibilidad
+        def open_add_disponibilidad_dialog(e):
+            fecha_field = TextField(label="Fecha (YYYY-MM-DD)")
+            hora_inicio_field = TextField(label="Hora Inicio (HH:MM)")
+            hora_fin_field = TextField(label="Hora Fin (HH:MM)")
+            
+            def save_new_disponibilidad(e):
+                fecha = fecha_field.value
+                hora_inicio = hora_inicio_field.value
+                hora_fin = hora_fin_field.value
+                try:
+                    cancha_model.add_disponibilidad(cancha['id_cancha'], fecha, hora_inicio, hora_fin)
+                    page.dialog.open = False
+                    refresh_disponibilidad()
+                except Exception as ex:
+                    print(f"Error al agregar disponibilidad: {ex}")
+                    page.dialog.open = False
+            
+            page.dialog = AlertDialog(
+                title=Text("Agregar Disponibilidad"),
+                content=Column([
+                    fecha_field,
+                    hora_inicio_field,
+                    hora_fin_field,
+                ]),
+                actions=[
+                    TextButton("Cancelar", on_click=lambda e: setattr(page.dialog, 'open', False)),
+                    TextButton("Guardar", on_click=save_new_disponibilidad),
+                ],
+                actions_alignment="end",
+            )
+            page.dialog.open = True
+            page.update()
+        
+        def open_edit_disponibilidad_dialog(disponibilidad):
+            fecha_field = TextField(label="Fecha (YYYY-MM-DD)", value=str(disponibilidad['fecha']))
+            hora_inicio_field = TextField(label="Hora Inicio (HH:MM)", value=str(disponibilidad['hora_inicio']))
+            hora_fin_field = TextField(label="Hora Fin (HH:MM)", value=str(disponibilidad['hora_fin']))
+            
+            def save_edit_disponibilidad(e):
+                fecha = fecha_field.value
+                hora_inicio = hora_inicio_field.value
+                hora_fin = hora_fin_field.value
+                id_disponibilidad = disponibilidad['id_disponibilidad']
+                try:
+                    cancha_model.update_disponibilidad(id_disponibilidad, fecha, hora_inicio, hora_fin)
+                    page.dialog.open = False
+                    refresh_disponibilidad()
+                except Exception as ex:
+                    print(f"Error al editar disponibilidad: {ex}")
+                    page.dialog.open = False
+            
+            page.dialog = AlertDialog(
+                title=Text("Editar Disponibilidad"),
+                content=Column([
+                    fecha_field,
+                    hora_inicio_field,
+                    hora_fin_field,
+                ]),
+                actions=[
+                    TextButton("Cancelar", on_click=lambda e: setattr(page.dialog, 'open', False)),
+                    TextButton("Guardar", on_click=save_edit_disponibilidad),
+                ],
+                actions_alignment="end",
+            )
+            page.dialog.open = True
+            page.update()
+        
+        def open_delete_disponibilidad_dialog(disponibilidad):
+            def confirm_delete(e):
+                id_disponibilidad = disponibilidad['id_disponibilidad']
+                try:
+                    cancha_model.delete_disponibilidad(id_disponibilidad)
+                    page.dialog.open = False
+                    refresh_disponibilidad()
+                except Exception as ex:
+                    print(f"Error al eliminar disponibilidad: {ex}")
+                    page.dialog.open = False
+            
+            page.dialog = AlertDialog(
+                title=Text("Eliminar Disponibilidad"),
+                content=Text(f"¿Está seguro de eliminar la disponibilidad del {disponibilidad['fecha']} de {disponibilidad['hora_inicio']} a {disponibilidad['hora_fin']}?"),
+                actions=[
+                    TextButton("Cancelar", on_click=lambda e: setattr(page.dialog, 'open', False)),
+                    TextButton("Eliminar", on_click=confirm_delete),
+                ],
+                actions_alignment="end",
+            )
+            page.dialog.open = True
+            page.update()
+        
+        # Dialog para gestionar disponibilidad
+        page.dialog = AlertDialog(
+            title=Text(f"Disponibilidad para {cancha['nombre_cancha']}"),
+            content=Column([
+                Row(
+                    [
+                        ElevatedButton("Agregar Disponibilidad", on_click=open_add_disponibilidad_dialog),
+                    ],
+                    alignment="start",
+                ),
+                disponibilidad_table,
+            ]),
+            actions=[
+                TextButton("Cerrar", on_click=lambda e: setattr(page.dialog, 'open', False)),
+            ],
+            actions_alignment="end",
+            fullscreen=True,
         )
         page.dialog.open = True
         page.update()

@@ -45,6 +45,22 @@ class ComplejoModel:
         self.cursor.execute(query, (id_complejo,))
         self.db_service.connection.commit()
 
+    def fetch_complejos_by_name(self, termino):
+        query = """
+        SELECT id_complejo, nombre_complejo, direccion, id_imagen 
+        FROM ComplejosDeportivos 
+        WHERE nombre_complejo ILIKE %s
+        """
+        like_term = f"%{termino}%"
+        self.cursor.execute(query, (like_term,))
+        complejos = self.cursor.fetchall()
+        return [{
+            'id_complejo': c[0],
+            'nombre_complejo': c[1],
+            'direccion': c[2],
+            'id_imagen': c[3]
+        } for c in complejos]
+
     def fetch_complejo_by_id(self, id_complejo):
         query = """
         SELECT id_complejo, nombre_complejo, direccion, id_imagen 

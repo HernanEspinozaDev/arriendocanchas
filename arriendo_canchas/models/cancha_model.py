@@ -66,5 +66,43 @@ class CanchaModel:
             }
         return None
 
+    def fetch_disponibilidad(self, id_cancha):
+        query = """
+        SELECT id_disponibilidad, fecha, hora_inicio, hora_fin
+        FROM DisponibilidadCanchas
+        WHERE id_cancha = %s
+        ORDER BY fecha, hora_inicio
+        """
+        self.cursor.execute(query, (id_cancha,))
+        disponibilidad = self.cursor.fetchall()
+        return [{
+            'id_disponibilidad': d[0],
+            'fecha': d[1],
+            'hora_inicio': d[2],
+            'hora_fin': d[3]
+        } for d in disponibilidad]
+    
+    def add_disponibilidad(self, id_cancha, fecha, hora_inicio, hora_fin):
+        query = """
+        INSERT INTO DisponibilidadCanchas (id_cancha, fecha, hora_inicio, hora_fin)
+        VALUES (%s, %s, %s, %s)
+        """
+        self.cursor.execute(query, (id_cancha, fecha, hora_inicio, hora_fin))
+        self.db_service.connection.commit()
+    
+    def update_disponibilidad(self, id_disponibilidad, fecha, hora_inicio, hora_fin):
+        query = """
+        UPDATE DisponibilidadCanchas
+        SET fecha = %s, hora_inicio = %s, hora_fin = %s
+        WHERE id_disponibilidad = %s
+        """
+        self.cursor.execute(query, (fecha, hora_inicio, hora_fin, id_disponibilidad))
+        self.db_service.connection.commit()
+    
+    def delete_disponibilidad(self, id_disponibilidad):
+        query = "DELETE FROM DisponibilidadCanchas WHERE id_disponibilidad = %s"
+        self.cursor.execute(query, (id_disponibilidad,))
+        self.db_service.connection.commit()
+    
     def close(self):
         self.db_service.close()

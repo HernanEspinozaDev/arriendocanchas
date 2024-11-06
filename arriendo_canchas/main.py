@@ -9,7 +9,7 @@ from views.widgets.navbar_pages import Navbar as AuthenticatedNavbar
 from views.widgets.sidebar import Sidebar
 from viewmodels.user_viewmodel import UserViewModel
 
-# Importar todas las vistas CRUD
+# Importar todas las vistas CRUD y adicionales
 from views.authenticated.admin_view import AdminView
 from views.authenticated.cliente_arrendador_view import ClienteArrendadorView
 from views.authenticated.usuario_view import UsuarioView
@@ -23,6 +23,10 @@ from views.authenticated.atencion_view import AtencionView
 from views.authenticated.usuarios_view import UsuariosView
 from views.authenticated.complejos_view import ComplejosView
 from views.authenticated.canchas_view import CanchasView
+from views.authenticated.mis_datos_view import MisDatosView
+from views.authenticated.buscar_complejos_view import BuscarComplejosView
+from views.authenticated.mis_reservas_view import MisReservasView
+from views.authenticated.mis_reclamos_view import MisReclamosView
 
 def main(page: Page):
     page.title = "ArriendoCancha.cl"
@@ -89,6 +93,14 @@ def main(page: Page):
                     content = ComplejosView(page, user_vm)
                 elif page.route == "/mis_canchas":
                     content = CanchasView(page, user_vm)
+                elif page.route == "/mis_datos":
+                    content = MisDatosView(page, user_vm)
+                elif page.route == "/buscar_complejos":
+                    content = BuscarComplejosView(page, user_vm)
+                elif page.route == "/mis_reservas":
+                    content = MisReservasView(page, user_vm)
+                elif page.route == "/mis_reclamos":
+                    content = MisReclamosView(page, user_vm)
                 else:
                     content = Text("Página no encontrada")
 
@@ -112,13 +124,20 @@ def main(page: Page):
             )
         else:
             # Usuario no autenticado
-            content = HomeView(page, user_vm)
+            if page.route == "/login":
+                content = LoginView(page, user_vm)
+            else:
+                content = HomeView(page, user_vm)
             page.appbar = LandingNavbar(page)
             page.add(content)
 
         page.update()
 
-    page.on_route_change = route_change
-    page.go(page.route)
+    # Función para manejar cambios en la ruta
+    page.on_route_change = lambda e: route_change(page.route)
 
+    # Establecer ruta inicial
+    page.go(page.route or "/")
+
+# Llamada a flet.app fuera de la función main
 flet.app(target=main, view="web_browser", port=8555)

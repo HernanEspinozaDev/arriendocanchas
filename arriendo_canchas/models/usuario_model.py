@@ -1,4 +1,4 @@
-# arriendo_canchas/arriendo_canchas/models/usuario_model.py
+# arriendo_canchas/models/usuario_model.py
 
 import psycopg2
 from services.database_service import DatabaseService
@@ -35,6 +35,23 @@ class UsuarioModel:
         self.cursor.execute(query, (nombre, correo, id_usuario))
         self.db_service.connection.commit()
 
+    def update_usuario_full(self, id_usuario, nombre, apellido_paterno, apellido_materno, telefono, correo, contrasena=None):
+        if contrasena:
+            query = """
+            UPDATE Usuarios 
+            SET nombre = %s, apellido_paterno = %s, apellido_materno = %s, telefono = %s, correo = %s, contrasena = crypt(%s, gen_salt('bf')) 
+            WHERE id_usuario = %s
+            """
+            self.cursor.execute(query, (nombre, apellido_paterno, apellido_materno, telefono, correo, contrasena, id_usuario))
+        else:
+            query = """
+            UPDATE Usuarios 
+            SET nombre = %s, apellido_paterno = %s, apellido_materno = %s, telefono = %s, correo = %s 
+            WHERE id_usuario = %s
+            """
+            self.cursor.execute(query, (nombre, apellido_paterno, apellido_materno, telefono, correo, id_usuario))
+        self.db_service.connection.commit()
+
     def delete_usuario(self, id_usuario):
         query = "DELETE FROM Usuarios WHERE id_usuario = %s"
         self.cursor.execute(query, (id_usuario,))
@@ -42,14 +59,21 @@ class UsuarioModel:
 
     def fetch_usuario_by_id(self, id_usuario):
         query = """
-        SELECT id_usuario, nombre, correo 
+        SELECT id_usuario, nombre, correo, apellido_paterno, apellido_materno, telefono 
         FROM Usuarios 
         WHERE id_usuario = %s
         """
         self.cursor.execute(query, (id_usuario,))
         usuario = self.cursor.fetchone()
         if usuario:
-            return {'id_usuario': usuario[0], 'nombre': usuario[1], 'correo': usuario[2]}
+            return {
+                'id_usuario': usuario[0],
+                'nombre': usuario[1],
+                'correo': usuario[2],
+                'apellido_paterno': usuario[3],
+                'apellido_materno': usuario[4],
+                'telefono': usuario[5]
+            }
         return None
 
     def close(self):
